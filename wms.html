@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>WMS — Warehouse Management</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',sans-serif;background:#f0f2f5;color:#333;}
+
+/* ── PAGES ── */
+.page{display:none;min-height:100vh;}
+.page.active{display:block;}
+
+/* ── SIDEBAR LAYOUT ── */
+.app-layout{display:flex;min-height:100vh;}
+.sidebar{
+  width:220px;min-height:100vh;background:#1a1a1a;
+  display:flex;flex-direction:column;gap:0;
+  position:fixed;top:0;left:0;z-index:100;
+  box-shadow:2px 0 8px rgba(0,0,0,0.15);
+}
+.sidebar .logo{
+  color:#ffffff;font-size:18px;font-weight:700;
+  display:flex;align-items:center;gap:10px;
+  padding:22px 20px 18px 20px;border-bottom:1px solid rgba(255,255,255,0.07);
+}
+.sidebar nav{display:flex;flex-direction:column;gap:4px;padding:14px 10px;flex:1;}
+.sidebar nav a{
+  padding:10px 14px;border-radius:8px;color:rgba(255,255,255,0.7);
+  font-size:14px;cursor:pointer;transition:.2s;display:flex;align-items:center;gap:10px;
+  text-decoration:none;
+}
+.sidebar nav a:hover{background:rgba(255,255,255,0.08);color:#fff;}
+.sidebar nav a.active{background:#ffffff;color:#1a1a1a;font-weight:600;}
+.sidebar .logout{
+  padding:12px 20px;color:rgba(255,255,255,0.5);font-size:13px;
+  cursor:pointer;display:flex;align-items:center;gap:8px;
+  border-top:1px solid rgba(255,255,255,0.07);transition:.2s;
+}
+.sidebar .logout:hover{color:#fff;background:rgba(255,255,255,0.05);}
+
+/* main area offset */
+.main-area{margin-left:220px;flex:1;}
+
+/* ── PAGE CONTENT ── */
+.content{padding:28px 32px;display:flex;flex-direction:column;gap:22px;}
+
+/* ── TOP BAR ── */
+.topbar{
+  background:#fff;padding:0 32px;height:54px;display:flex;align-items:center;
+  justify-content:space-between;border-bottom:1px solid #eee;
+  box-shadow:0 1px 4px rgba(0,0,0,.05);
+}
+.topbar .ptitle{font-size:20px;font-weight:700;color:#1a1a1a;}
+.topbar .user-info{font-size:13px;color:#888;display:flex;align-items:center;gap:6px;}
+
+
+
+/* ── CARDS ── */
+.cards{display:flex;gap:18px;flex-wrap:wrap;}
+.card{
+  background:#fff;border-radius:10px;padding:20px 24px;flex:1;min-width:150px;
+  box-shadow:0 2px 6px rgba(0,0,0,.06);display:flex;flex-direction:column;gap:6px;
+}
+.card i{font-size:22px;color:#ffffff;}
+.card .lbl{font-size:12px;color:#888;}
+.card .val{font-size:26px;font-weight:700;color:#1a1a1a;}
+
+/* ── SECTION BOX ── */
+.box{
+  background:#fff;border-radius:10px;padding:20px 24px;
+  box-shadow:0 2px 6px rgba(0,0,0,.06);display:flex;flex-direction:column;gap:14px;
+}
+.box h2{font-size:16px;color:#1a1a1a;display:flex;align-items:center;gap:8px;}
+.box h2 i{color:#ffffff;}
+
+/* ── FORM ROW ── */
+.frow{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+.frow input,.frow select{
+  padding:9px 12px;border:1.5px solid #ddd;border-radius:8px;
+  font-size:13px;outline:none;flex:1;min-width:110px;
+}
+.frow input:focus,.frow select:focus{border-color:#ffffff;}
+.frow button,.btn-go{
+  padding:9px 20px;background:#ffffff;color:#1a1a1a;border:none;
+  border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:.2s;
+  display:flex;align-items:center;gap:6px;white-space:nowrap;
+}
+.frow button:hover,.btn-go:hover{background:#e0e0e0;}
+.btn-secondary{
+  padding:9px 16px;background:#f5f5f5;color:#555;border:1.5px solid #ddd;
+  border-radius:8px;font-size:13px;cursor:pointer;transition:.2s;
+  display:flex;align-items:center;gap:6px;white-space:nowrap;
+}
+.btn-secondary:hover{background:#ebebeb;}
+.btn-go:disabled{opacity:.5;cursor:not-allowed;}
+
+
+/* TABLE */
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{background:#f8f8f8;padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:.5px;border-bottom:1.5px solid #f0f0f0;}
+td{padding:10px 14px;border-bottom:1px solid #f5f5f5;}
+tr:last-child td{border-bottom:none;}
+tr.low td:nth-child(4){color:#e74c3c;font-weight:600;}
+.green{color:#27ae60;font-weight:600;}
+.red{color:#e74c3c;font-weight:600;}
+.msg{font-size:13px;font-weight:500;min-height:18px;}
+.del-btn{padding:5px 12px;background:#fce8e6;color:#d93025;border:none;border-radius:6px;font-size:12px;cursor:pointer;}
+.del-btn:hover{background:#d93025;color:#fff;}
+
+/* TOAST */
+.toast{position:fixed;top:18px;right:18px;padding:12px 20px;border-radius:8px;font-size:14px;font-weight:600;color:#fff;display:none;z-index:9999;}
+.toast.success{background:#27ae60;}
+.toast.error{background:#e74c3c;}
+.toast.show{display:block;}
+</style>
+</head>
+<body>
+
+
+
+<!-- ════════ DASHBOARD ════════ -->
+<div id="page-dashboard" class="page active">
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="logo"><i class="fa-solid fa-warehouse"></i> WMS</div>
+      <nav>
+        <a class="active" onclick="goTo('page-dashboard')"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+        <a onclick="goTo('page-products')"><i class="fa-solid fa-boxes-stacked"></i> Products</a>
+        <a onclick="goTo('page-orders')"><i class="fa-solid fa-receipt"></i> Orders</a>
+      </nav>
+      <div class="logout" onclick="doLogout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</div>
+    </aside>
+    <div class="main-area">
+      <div class="topbar"><span class="ptitle">Dashboard</span><span class="user-info"><i class="fa-solid fa-circle-user"></i> Demo User</span></div>
+      <div class="content">
+        <div class="cards">
+          <div class="card"><i class="fa-solid fa-boxes-stacked"></i><p class="lbl">Total Products</p><p class="val" id="d-tp">…</p></div>
+          <div class="card"><i class="fa-solid fa-triangle-exclamation"></i><p class="lbl">Low Stock</p><p class="val" id="d-ls">…</p></div>
+          <div class="card"><i class="fa-solid fa-receipt"></i><p class="lbl">Total Orders</p><p class="val" id="d-to">…</p></div>
+        </div>
+        <div class="box">
+          <h2><i class="fa-solid fa-clock-rotate-left"></i> Recent Orders</h2>
+          <table>
+            <thead><tr><th>ID</th><th>Product</th><th>Qty</th><th>Cost (Rs)</th><th>Type</th><th>Date</th></tr></thead>
+            <tbody id="d-tb"><tr><td colspan="6">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ PRODUCTS ════════ -->
+<div id="page-products" class="page">
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="logo"><i class="fa-solid fa-warehouse"></i> WMS</div>
+      <nav>
+        <a onclick="goTo('page-dashboard')"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+        <a class="active" onclick="goTo('page-products')"><i class="fa-solid fa-boxes-stacked"></i> Products</a>
+        <a onclick="goTo('page-orders')"><i class="fa-solid fa-receipt"></i> Orders</a>
+      </nav>
+      <div class="logout" onclick="doLogout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</div>
+    </aside>
+    <div class="main-area">
+      <div class="topbar"><span class="ptitle">Products</span></div>
+      <div class="content">
+
+        <!-- Add Product -->
+        <div class="box">
+          <h2><i class="fa-solid fa-plus"></i> Add Product</h2>
+          <div class="frow">
+            <input type="number" id="p-id"    placeholder="ID"/>
+<input type="text"   id="p-name"  placeholder="Material Name"/>
+<input type="text"   id="p-cat"   placeholder="Category (e.g. Masonry)"/>
+<input type="number" id="p-qty"   placeholder="Stock Units"/>
+<input type="number" id="p-price" placeholder="Price per Unit (Rs)" step="0.01"/>
+            <button onclick="addProduct()"><i class="fa-solid fa-plus"></i> Add</button>
+          </div>
+          <p id="p-msg" class="msg"></p>
+        </div>
+
+
+        <!-- Products Table -->
+        <div class="box">
+          <h2><i class="fa-solid fa-table"></i> All Products</h2>
+          <table>
+            <thead><tr><th>ID</th><th>Name</th><th>Category</th><th>Quantity</th><th>Price (Rs)</th><th>Action</th></tr></thead>
+            <tbody id="p-tb"><tr><td colspan="6">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ ORDERS ════════ -->
+<div id="page-orders" class="page">
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="logo"><i class="fa-solid fa-warehouse"></i> WMS</div>
+      <nav>
+        <a onclick="goTo('page-dashboard')"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+        <a onclick="goTo('page-products')"><i class="fa-solid fa-boxes-stacked"></i> Products</a>
+        <a class="active" onclick="goTo('page-orders')"><i class="fa-solid fa-receipt"></i> Orders</a>
+      </nav>
+      <div class="logout" onclick="doLogout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</div>
+    </aside>
+    <div class="main-area">
+      <div class="topbar"><span class="ptitle">Orders</span></div>
+      <div class="content">
+
+        <!-- Place Order -->
+        <div class="box">
+          <h2><i class="fa-solid fa-plus"></i> Place Order</h2>
+          <div class="frow">
+            <input type="number" id="o-pid" placeholder="Product ID"/>
+            <input type="number" id="o-qty" placeholder="Quantity"/>
+            <select id="o-type">
+              <option value="in">Restock (IN)</option>
+              <option value="out">Dispatch (OUT)</option>
+            </select>
+            <button onclick="placeOrder()"><i class="fa-solid fa-paper-plane"></i> Submit</button>
+          </div>
+          <p id="o-msg" class="msg"></p>
+        </div>
+
+
+        <!-- Orders Table -->
+        <div class="box">
+          <h2><i class="fa-solid fa-table"></i> All Orders</h2>
+          <table>
+            <thead><tr><th>Order ID</th><th>Product</th><th>Qty</th><th>Cost (Rs)</th><th>Type</th><th>Date</th></tr></thead>
+            <tbody id="o-tb"><tr><td colspan="6">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+const BASE='http://localhost/wms/';
+
+window.addEventListener('load', () => loadDash());
+
+/* ══ DEMO DATA (used when no backend / XAMPP is running) ══ */
+const DEMO_PRODUCTS=[
+  {id:1,name:'Rice Basmati',category:'Grains',quantity:120,price:180},
+  {id:2,name:'Wheat Flour',category:'Grains',quantity:8,price:95},
+  {id:3,name:'Sugar Fine',category:'Sweeteners',quantity:60,price:110},
+  {id:4,name:'Cooking Oil',category:'Oils',quantity:45,price:320},
+  {id:5,name:'Salt Iodized',category:'Condiments',quantity:5,price:30},
+  {id:6,name:'Tea Leaves',category:'Beverages',quantity:90,price:250},
+  {id:7,name:'Coffee Beans',category:'Beverages',quantity:35,price:480},
+  {id:8,name:'Lentils Red',category:'Pulses',quantity:70,price:160},
+  {id:9,name:'Chickpeas',category:'Pulses',quantity:55,price:140},
+  {id:10,name:'Tomato Sauce',category:'Condiments',quantity:7,price:85},
+];
+const DEMO_ORDERS=[
+  {order_id:1,product_name:'Rice Basmati',qty:50,total_cost:9000,type:'in',created_at:'2025-05-01'},
+  {order_id:2,product_name:'Cooking Oil',qty:20,total_cost:6400,type:'out',created_at:'2025-05-02'},
+  {order_id:3,product_name:'Sugar Fine',qty:30,total_cost:3300,type:'in',created_at:'2025-05-03'},
+  {order_id:4,product_name:'Tea Leaves',qty:15,total_cost:3750,type:'out',created_at:'2025-05-04'},
+  {order_id:5,product_name:'Wheat Flour',qty:40,total_cost:3800,type:'in',created_at:'2025-05-05'},
+  {order_id:6,product_name:'Lentils Red',qty:25,total_cost:4000,type:'out',created_at:'2025-05-06'},
+  {order_id:7,product_name:'Coffee Beans',qty:10,total_cost:4800,type:'in',created_at:'2025-05-07'},
+  {order_id:8,product_name:'Chickpeas',qty:35,total_cost:4900,type:'out',created_at:'2025-05-08'},
+];
+
+let allP=[],allO=[];
+
+/* ══ ROUTING ══ */
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function goTo(id){
+  showPage(id);
+  if(id==='page-dashboard')loadDash();
+  if(id==='page-products')loadProducts();
+  if(id==='page-orders')loadOrders();
+}
+function doLogout(){ sessionStorage.removeItem('wms_logged_in'); window.location.href='login.html'; }
+
+/* ══ TOAST ══ */
+function toast(msg,type){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast '+type+' show';
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+/* ══ DASHBOARD ══ */
+function loadDash(){
+  fetch(BASE+'dashboard.php').then(r=>r.json()).then(renderDash).catch(()=>{
+    renderDash({
+      total_products:DEMO_PRODUCTS.length,
+      low_stock:DEMO_PRODUCTS.filter(p=>p.quantity<=10).length,
+      total_orders:DEMO_ORDERS.length,
+      recent_orders:DEMO_ORDERS.slice(-5).reverse()
+    });
+  });
+}
+function renderDash(d){
+  document.getElementById('d-tp').textContent=d.total_products;
+  document.getElementById('d-ls').textContent=d.low_stock;
+  document.getElementById('d-to').textContent=d.total_orders;
+  document.getElementById('d-tb').innerHTML=d.recent_orders.length
+    ?d.recent_orders.map(o=>`<tr><td>${o.order_id}</td><td>${o.product_name}</td><td>${o.qty}</td><td>${o.total_cost}</td><td class="${o.type==='in'?'green':'red'}">${o.type==='in'?'Restock':'Dispatch'}</td><td>${o.created_at}</td></tr>`).join('')
+    :'<tr><td colspan="6">No orders yet.</td></tr>';
+}
+
+/* ══ PRODUCTS DATA ══ */
+function loadProducts(){
+  fetch(BASE+'products.php').then(r=>r.json()).then(d=>{
+    allP=d;refreshProducts();
+  }).catch(()=>{
+    allP=DEMO_PRODUCTS.map(p=>({...p}));
+    refreshProducts();
+  });
+}
+function refreshProducts(){
+  renderPTable(allP);
+}
+function renderPTable(d){
+  document.getElementById('p-tb').innerHTML=d.length
+    ?d.map(p=>`<tr class="${p.quantity<=10?'low':''}"><td>${p.id}</td><td>${p.name}</td><td>${p.category}</td><td>${p.quantity}</td><td>${p.price}</td><td><button class="del-btn" onclick="delProduct(${p.id})">Delete</button></td></tr>`).join('')
+    :'<tr><td colspan="6">No products.</td></tr>';
+}
+function addProduct(){
+  const id=parseInt(document.getElementById('p-id').value);
+  const name=document.getElementById('p-name').value.trim();
+  const category=document.getElementById('p-cat').value.trim();
+  const quantity=parseInt(document.getElementById('p-qty').value);
+  const price=parseFloat(document.getElementById('p-price').value);
+  const m=document.getElementById('p-msg');
+  if(!id||!name||!category||isNaN(quantity)||isNaN(price)){m.textContent='Please fill all fields.';m.className='msg red';return;}
+  if(allP.find(p=>p.id===id)){m.textContent='Product ID already exists.';m.className='msg red';return;}
+  // Try backend first, fallback to demo
+  fetch(BASE+'products.php',{method:'POST',body:new URLSearchParams({action:'add',id,name,category,quantity,price})})
+    .then(r=>r.json()).then(d=>{
+      m.textContent=d.message;m.className='msg '+(d.success?'green':'red');
+      if(d.success)loadProducts();
+    }).catch(()=>{
+      allP.push({id,name,category,quantity,price});
+      m.textContent='Product added (demo mode)!';m.className='msg green';
+      refreshProducts();
+    });
+}
+function delProduct(id){
+  if(!confirm('Delete product '+id+'?'))return;
+  fetch(BASE+'products.php',{method:'POST',body:new URLSearchParams({action:'delete',id})})
+    .then(r=>r.json()).then(d=>{if(d.success)loadProducts();})
+    .catch(()=>{
+      allP=allP.filter(p=>p.id!==id);
+      refreshProducts();
+    });
+}
+
+/* ══ ORDERS DATA ══ */
+function loadOrders(){
+  fetch(BASE+'orders.php').then(r=>r.json()).then(d=>{
+    allO=d;refreshOrders();
+  }).catch(()=>{
+    allO=DEMO_ORDERS.map(o=>({...o}));
+    refreshOrders();
+  });
+}
+function refreshOrders(){
+  renderOTable(allO);
+}
+function renderOTable(d){
+  document.getElementById('o-tb').innerHTML=d.length
+    ?d.map(o=>`<tr><td>${o.order_id}</td><td>${o.product_name}</td><td>${o.qty}</td><td>${o.total_cost}</td><td class="${o.type==='in'?'green':'red'}">${o.type==='in'?'Restock':'Dispatch'}</td><td>${o.created_at}</td></tr>`).join('')
+    :'<tr><td colspan="6">No orders.</td></tr>';
+}
+function placeOrder(){
+  const pid=parseInt(document.getElementById('o-pid').value);
+  const qty=parseInt(document.getElementById('o-qty').value);
+  const type=document.getElementById('o-type').value;
+  const m=document.getElementById('o-msg');
+  if(!pid||!qty){m.textContent='Please enter Product ID and Quantity.';m.className='msg red';return;}
+  fetch(BASE+'orders.php',{method:'POST',body:new URLSearchParams({action:'place',product_id:pid,qty,type})})
+    .then(r=>r.json()).then(d=>{
+      m.textContent=d.message;m.className='msg '+(d.success?'green':'red');
+      if(d.success)loadOrders();
+    }).catch(()=>{
+      const prod=allP.find(p=>p.id===pid);
+      const pname=prod?prod.name:'Product #'+pid;
+      const newId=allO.length?Math.max(...allO.map(o=>o.order_id))+1:1;
+      const cost=prod?prod.price*qty:qty*100;
+      const today=new Date().toISOString().split('T')[0];
+      allO.push({order_id:newId,product_name:pname,qty,total_cost:cost,type,created_at:today});
+      m.textContent='Order placed (demo mode)!';m.className='msg green';
+      refreshOrders();
+    });
+}
+</script>
+</body>
+</html>

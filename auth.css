@@ -1,0 +1,142 @@
+/* ══════════════════════════════════════
+   WMS — Auth Shared Styles
+   Used by: login.html, signup.html
+══════════════════════════════════════ */
+
+*, *::before, *::after {
+  margin: 0; padding: 0; box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: #1a1a1a;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── CARD ── */
+.auth-box {
+  background: #fff;
+  padding: 40px 36px;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* ── HEADING ── */
+.auth-box h2 {
+  text-align: center;
+  margin-bottom: 28px;
+  font-size: 24px;
+  color: #1a1a1a;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.auth-box h2 i {
+  color: #1a1a1a;
+  font-size: 26px;
+}
+
+/* ── INPUT GROUP ── */
+.input-group {
+  position: relative;
+  margin-bottom: 18px;
+}
+.input-group input {
+  width: 100%;
+  padding: 13px 44px 13px 16px;
+  border: 1.5px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: 'Segoe UI', sans-serif;
+  color: #333;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background: #fafafa;
+}
+.input-group input:focus {
+  border-color: #1a1a1a;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(0,0,0,0.12);
+}
+.input-group input.err {
+  border-color: #e74c3c;
+}
+
+/* ── EYE ICON ── */
+.input-group .eye {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #aaa;
+  font-size: 15px;
+  transition: color 0.2s;
+}
+.input-group .eye:hover { color: #666; }
+
+/* ── ERROR TEXT ── */
+.err-txt {
+  display: none;
+  color: #e74c3c;
+  font-size: 12px;
+  margin-top: 5px;
+}
+.err-txt.show { display: block; }
+
+/* ── BUTTON ── */
+.auth-btn {
+  width: 100%;
+  padding: 13px;
+  background: #1a1a1a;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  margin-top: 4px;
+}
+.auth-btn:hover  { background: #333333; }
+.auth-btn:active { transform: scale(0.99); }
+.auth-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* ── LINK ROW ── */
+.auth-link {
+  text-align: center;
+  margin-top: 18px;
+  font-size: 13px;
+  color: #666;
+}
+.auth-link a {
+  color: #1a1a1a;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+}
+.auth-link a:hover { text-decoration: underline; }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  z-index: 9999;
+  display: none;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+}
+.toast.success { background: #27ae60; display: block; }
+.toast.error   { background: #e74c3c; display: block; }

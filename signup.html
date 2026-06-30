@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WMS — Register</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <link rel="stylesheet" href="auth.css"/>
+</head>
+<body>
+
+  <div class="auth-box">
+    <h2><i class="fa-solid fa-warehouse"></i> Register</h2>
+
+    <div class="input-group">
+      <input type="text" id="s-name" placeholder="Full Name" autocomplete="name"/>
+      <small class="err-txt" id="s-nErr"></small>
+    </div>
+
+    <div class="input-group">
+      <input type="email" id="s-email" placeholder="Email address" autocomplete="email"/>
+      <small class="err-txt" id="s-eErr"></small>
+    </div>
+
+    <div class="input-group">
+      <input type="password" id="s-pass" placeholder="Password (min 8 chars)" autocomplete="new-password"/>
+      <i class="fa-solid fa-eye eye" id="s-eye1"></i>
+      <small class="err-txt" id="s-pErr"></small>
+    </div>
+
+    <div class="input-group">
+      <input type="password" id="s-conf" placeholder="Confirm Password" autocomplete="new-password"/>
+      <i class="fa-solid fa-eye eye" id="s-eye2"></i>
+      <small class="err-txt" id="s-cErr"></small>
+    </div>
+
+    <button class="auth-btn" id="s-btn" onclick="doSignup()">Register</button>
+
+    <div class="auth-link">
+      Have account? <a href="login.html">Login here</a>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="auth.js"></script>
+  <script>
+    // Eye toggles
+    document.getElementById('s-eye1').onclick = () => toggleEye('s-pass', 's-eye1');
+    document.getElementById('s-eye2').onclick = () => toggleEye('s-conf', 's-eye2');
+
+    // Enter key
+    document.addEventListener('keydown', e => { if (e.key === 'Enter') doSignup(); });
+
+    async function doSignup() {
+      [['s-nErr','s-name'],['s-eErr','s-email'],['s-pErr','s-pass'],['s-cErr','s-conf']]
+        .forEach(([e, i]) => clrErr(e, i));
+
+      const nm = document.getElementById('s-name').value.trim();
+      const em = document.getElementById('s-email').value.trim();
+      const pw = document.getElementById('s-pass').value;
+      const cf = document.getElementById('s-conf').value;
+      let ok = true;
+
+      if (nm.length < 2)  { setErr('s-nErr', 's-name',  'Enter your full name');         ok = false; }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) { setErr('s-eErr', 's-email', 'Enter a valid email'); ok = false; }
+      if (pw.length < 8)  { setErr('s-pErr', 's-pass',  'Minimum 8 characters');          ok = false; }
+      if (pw !== cf)       { setErr('s-cErr', 's-conf',  'Passwords do not match');        ok = false; }
+      if (!ok) return;
+
+      const btn = document.getElementById('s-btn');
+      btn.disabled = true; btn.textContent = 'Registering…';
+
+      try {
+        const res  = await fetch(BASE + 'auth.php', {
+          method: 'POST',
+          body: new URLSearchParams({ action: 'register', name: nm, email: em, password: pw })
+        });
+        const data = await res.json();
+        if (data.success) {
+          toast(data.message, 'success');
+          setTimeout(() => window.location.href = 'login.html', 1500);
+        } else {
+          toast(data.message, 'error');
+        }
+      } catch {
+        // Demo mode — no backend
+        toast('Registered! (Demo mode)', 'success');
+        setTimeout(() => window.location.href = 'login.html', 1500);
+      }
+
+      btn.disabled = false; btn.textContent = 'Register';
+    }
+  </script>
+</body>
+</html>

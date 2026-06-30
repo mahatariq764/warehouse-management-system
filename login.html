@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WMS — Login</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <link rel="stylesheet" href="auth.css"/>
+</head>
+<body>
+  <div class="auth-box">
+    <h2><i class="fa-solid fa-warehouse"></i> WMS Login</h2>
+    <div class="input-group">
+      <input type="email" id="l-email" placeholder="Email address" autocomplete="email"/>
+      <small class="err-txt" id="l-eErr"></small>
+    </div>
+    <div class="input-group">
+      <input type="password" id="l-pass" placeholder="Password" autocomplete="current-password"/>
+      <i class="fa-solid fa-eye eye" id="l-eye"></i>
+      <small class="err-txt" id="l-pErr"></small>
+    </div>
+    <button class="auth-btn" id="l-btn" onclick="doLogin()">Login</button>
+    <div class="auth-link">
+      No account? <a href="signup.html">Register here</a>
+    </div>
+  </div>
+  <div id="toast" class="toast"></div>
+  <script src="auth.js"></script>
+  <script>
+    // Eye toggle
+    document.getElementById('l-eye').onclick = () => toggleEye('l-pass', 'l-eye');
+    // Enter key
+    document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+    async function doLogin() {
+      clrErr('l-eErr', 'l-email');
+      clrErr('l-pErr', 'l-pass');
+      const em = document.getElementById('l-email').value.trim();
+      const pw = document.getElementById('l-pass').value;
+      let ok = true;
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) {
+        setErr('l-eErr', 'l-email', 'Enter a valid email address'); ok = false;
+      }
+      if (pw.length < 6) {
+        setErr('l-pErr', 'l-pass', 'Minimum 6 characters'); ok = false;
+      }
+      if (!ok) return;
+      const btn = document.getElementById('l-btn');
+      btn.disabled = true; btn.textContent = 'Logging in…';
+      try {
+        const res  = await fetch(BASE + 'auth.php', {
+          method: 'POST',
+          body: new URLSearchParams({ action: 'login', email: em, password: pw })
+        });
+        const data = await res.json();
+        if (data.success) {
+          sessionStorage.setItem('wms_logged_in', 'true');
+          toast(data.message, 'success');
+          setTimeout(() => window.location.href = 'wms.html', 1500);
+        } else {
+          toast(data.message, 'error');
+        }
+      } catch {
+        // Demo mode — no backend
+        sessionStorage.setItem('wms_logged_in', 'true');
+        toast('Demo mode — welcome!', 'success');
+        setTimeout(() => window.location.href = 'wms.html', 1500);
+      }
+      btn.disabled = false; btn.textContent = 'Login';
+    }
+  </script>
+</body>
+</html>
